@@ -6,9 +6,17 @@
 #include <semaphore.h>
 #include <string.h>
 #include <stdio.h>
+#include <time.h>
 #define NUMCONS		2
 #define NUMPROD		2
 #define BUFFERSIZE	1000
+
+//int sorteio(int MIN, int MAX){
+//	srand48(time(0));
+//	int n = (int) (drand48()*(MAX - MIN + 1)) + MIN;
+//	return n;
+//}
+
 pthread_t cons[NUMCONS];
 pthread_t prod[NUMPROD];
 int buffer[BUFFERSIZE];
@@ -19,7 +27,7 @@ void *consumidor(void *arg);
 void *produtor(void *arg);
 
 //declaração das variaveis globais
-
+int SEU_RA = 202010655;
 char primiraLetra[1] = "H";
 char segundaLetra[1] = "H";
 char terceiraLetra[1] = "S";
@@ -28,14 +36,15 @@ char cabodeguerra[87][1];
 
 int primeiraLetraPOS = 42;
 int ultimaLetraPOS = 44;
+int numerocontrole = 43;
 
 //função que verifica se a letra esta na primeira posição ou se a letra esta na ultima posição
 
 int verificador(){
-	if (primeiraLetraPOS == 0){
+	if (numerocontrole == 1){
 		return 1;
 	}
-	if (ultimaLetraPOS == 87){
+	if (numerocontrole == 86){
 		return 1;
 	}
 	return 0;
@@ -47,28 +56,28 @@ int verificador(){
 
 void clrscr()
 {
-    system("@cls||clear");
+   system("@cls||clear");
 }
 
 //andar para a esquerda com o cabodeguerra
 
 int andarParaEsquerda() {
-	strcpy(cabodeguerra[primeiraLetraPOS -1], primiraLetra);
-	strcpy(cabodeguerra[primeiraLetraPOS], segundaLetra);
-	strcpy(cabodeguerra[primeiraLetraPOS +1], terceiraLetra);
-	strcpy(cabodeguerra[primeiraLetraPOS +2], "_");
-	primeiraLetraPOS = primeiraLetraPOS - 1;
+	strcpy(cabodeguerra[numerocontrole], terceiraLetra);
+	strcpy(cabodeguerra[numerocontrole + 1], "_");
+	strcpy(cabodeguerra[numerocontrole - 1], segundaLetra);
+	strcpy(cabodeguerra[numerocontrole - 2], primiraLetra);
+	numerocontrole--;
 	return 0;
 }
 
 //andar para a direita com o cabodeguerra
 
 int andarParaDireita() {
-	strcpy(cabodeguerra[ultimaLetraPOS +1], terceiraLetra);
-	strcpy(cabodeguerra[ultimaLetraPOS], segundaLetra);
-	strcpy(cabodeguerra[ultimaLetraPOS -1], primiraLetra);
-	strcpy(cabodeguerra[ultimaLetraPOS -2], "_");
-	ultimaLetraPOS = ultimaLetraPOS + 1;
+	strcpy(cabodeguerra[numerocontrole], primiraLetra);
+	strcpy(cabodeguerra[numerocontrole + 1], segundaLetra);
+	strcpy(cabodeguerra[numerocontrole + 2], terceiraLetra);
+	strcpy(cabodeguerra[numerocontrole - 1], "_");
+	numerocontrole++;
 	return 0;
 }
 
@@ -125,16 +134,17 @@ void *produtor(void *arg) {
 			if(currentidx == 1) sem_post(&buffer_empty);
 			pthread_mutex_unlock(&buffer_mutex);
 			//printf("Produzindo numero %d\n", n);
-			clrscr();
 			if (verificador() == 0) {
-				printf("%s\n", *cabodeguerra);
+				//printf("%s\n", *cabodeguerra);
+				printf("sou o produtor: %d\n", numerocontrole);
 				andarParaDireita();
 			}
 			else {
-				printf("Os vencedores foraão os consumidores\n");
+				printf("Os vencedores foram os consumidores\n");
 			}
 		}
-		sleep((int) (drand48() * 4.0));
+		usleep((long) (drand48() * SEU_RA/89.0));
+		//clrscr();
 	}
 }
 
@@ -149,19 +159,20 @@ void *consumidor(void *arg) {
 				sem_post(&buffer_full);
 			pthread_mutex_unlock(&buffer_mutex);
 			//printf("Consumindo numero %d\n", n);
-			clrscr();
 			if (verificador() == 0) {
-				printf("%s\n", *cabodeguerra);
+				//printf("%s", *cabodeguerra);
+				printf("sou o consumidor: %d\n", numerocontrole);
 				andarParaEsquerda();
 			} else
 			{
-				printf("Os vencedores foraão os consumidores\n");
+				printf("Os vencedores foram os consumidores\n");
 			}
 			
 		} else {
 			pthread_mutex_unlock(&buffer_mutex);
 			sem_wait(&buffer_empty);
 		}
-		sleep((int) (drand48() * 4.0));
+		usleep((long) (drand48() * SEU_RA/89.0));
+		//clrscr();
 	}
 }
